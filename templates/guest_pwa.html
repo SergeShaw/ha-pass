@@ -624,7 +624,7 @@ function buildLightControls(eid, state) {
     const kelvin = colorTempKelvinForState(state, bounds);
     sections.push(`<div data-color-temp-section class="flex items-center gap-3">
       <span aria-hidden="true" class="material-symbols-outlined text-base text-muted">thermometer</span>
-      <input type="range" min="${bounds.min}" max="${bounds.max}" step="100" value="${kelvin}"
+      <input type="range" min="${bounds.min}" max="${bounds.max}" step="1" value="${kelvin}"
         aria-label="Color temperature" id="ct-${cssId(eid)}"
         data-range-action="color-temp" data-eid="${esc(eid)}" data-display-id="ct-val-${cssId(eid)}">
       <span class="text-xs text-muted tabular-nums min-w-[52px] text-right font-mono" id="ct-val-${cssId(eid)}">${kelvin} K</span>
