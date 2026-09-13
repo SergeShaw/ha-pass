@@ -3,6 +3,7 @@
 No Home Assistant client, credentials, or household data are loaded.
 """
 import asyncio
+import colorsys
 import copy
 import json
 from pathlib import Path
@@ -21,8 +22,8 @@ for key in queues:
     app.mount(f"/{key}/static", StaticFiles(directory=ROOT / key / "static"))
 
 FIXTURE = {
-    "light.color_lamp": {"state": "on", "attributes": {"friendly_name": "Color lamp", "supported_color_modes": ["rgb", "color_temp"], "brightness": 191, "rgb_color": [244, 166, 64], "color_temp_kelvin": 3000, "min_color_temp_kelvin": 2000, "max_color_temp_kelvin": 6500}},
-    "light.white_lamp": {"state": "on", "attributes": {"friendly_name": "White ambiance lamp", "supported_color_modes": ["color_temp"], "brightness": 140, "color_temp_kelvin": 4200, "min_color_temp_kelvin": 2200, "max_color_temp_kelvin": 6500}},
+    "light.color_lamp": {"state": "on", "attributes": {"friendly_name": "Color lamp", "supported_color_modes": ["rgb", "color_temp"], "color_mode": "rgb", "brightness": 191, "rgb_color": [107, 255, 193], "hs_color": [155, 58], "color_temp_kelvin": None, "min_color_temp_kelvin": 2000, "max_color_temp_kelvin": 6500}},
+    "light.white_lamp": {"state": "on", "attributes": {"friendly_name": "White ambiance lamp", "supported_color_modes": ["color_temp"], "color_mode": "color_temp", "brightness": 140, "color_temp_kelvin": 4200, "min_color_temp_kelvin": 2200, "max_color_temp_kelvin": 6500}},
     "light.dimmable_lamp": {"state": "on", "attributes": {"friendly_name": "Dimmable reading lamp with a deliberately long name", "supported_color_modes": ["brightness"], "brightness": 102}},
     "light.simple_lamp": {"state": "on", "attributes": {"friendly_name": "On/off lamp", "supported_color_modes": ["onoff"]}},
     "light.off_lamp": {"state": "off", "attributes": {"friendly_name": "Color lamp (off)", "supported_color_modes": ["rgb"], "brightness": 200, "rgb_color": [64, 128, 255]}},
@@ -80,6 +81,11 @@ async def command(request: Request, variant: str):
     current["state"] = "off" if payload["service"].endswith("turn_off") else "on"
     data = payload.get("data", {})
     current["attributes"].update(data)
+    if "rgb_color" in data:
+        hue, saturation, _ = colorsys.rgb_to_hsv(*(channel / 255 for channel in data["rgb_color"]))
+        current["attributes"].update(color_mode="rgb", hs_color=[hue * 360, saturation * 100], color_temp_kelvin=None, color_temp=None)
+    elif "color_temp_kelvin" in data:
+        current["attributes"].update(color_mode="color_temp", hs_color=None, rgb_color=None)
     if "brightness_pct" in data:
         current["attributes"]["brightness"] = round(data["brightness_pct"] * 255 / 100)
     for queue in queues[variant]:
